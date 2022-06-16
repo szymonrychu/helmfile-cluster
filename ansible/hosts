@@ -1,0 +1,5 @@
+[openvpn_server]
+178.62.213.96    ansible_connection=ssh  ansible_user=vpn
+
+[openvpn_clients]
+192.168.1.25         ansible_connection=ssh  ansible_user=szymonri

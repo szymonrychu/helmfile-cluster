@@ -1,0 +1,6 @@
+.helmfile
+__pycache__
+
+**/.terraform
+**/.terraform.lock.hcl
+**/terraform.tfstate.backup
