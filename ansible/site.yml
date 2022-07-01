@@ -1,0 +1,56 @@
+---
+- name: OpenVPN Server
+  hosts: openvpn_server
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+
+  tasks:
+    - name: create openvpn server
+      ansible.builtin.include_role:
+        name: openvpn
+      vars:
+        openvpn_role: "server"
+
+    - name: Fetch the file from the openvpn_master to local
+      run_once: yes
+      fetch:
+        src: /etc/openvpn/easy-rsa/pki/{{ item }}
+        dest: buffer/{{ item | basename }}
+        flat: yes
+      loop:
+        - ca.crt
+        - issued/client.crt
+        - private/client.key
+        - ta.key
+
+- name: OpenVPN
+  hosts: openvpn_clients
+  become: yes
+  gather_facts: yes
+
+  tasks:
+
+    - name: Ensure /etc/openvpn/client/ directory exists
+      ansible.builtin.file:
+        path: /etc/openvpn/client/
+        state: directory
+        mode: '0755'
+  
+    - name: Fetch the file from local to openvpn client
+      run_once: yes
+      copy:
+        src: buffer/{{ item | basename }}
+        dest: /etc/openvpn/client/{{ item | basename }}
+      loop:
+        - ca.crt
+        - issued/client.crt
+        - private/client.key
+        - ta.key
+
+    - name: create openvpn client
+      ansible.builtin.include_role:
+        name: openvpn
+      vars:
+        openvpn_role: "client"
+        openvpn_client_server: "{{ hostvars[groups['openvpn_server'][0]]['ansible_eth0']['ipv4']['address'] }}"

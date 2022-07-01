@@ -1,0 +1,24 @@
+#!/bin/bash -e
+
+
+if ! env | grep "ENCRYPTION_PASSWORD" > /dev/null; then
+    echo "Please provide ENCRYPTION_PASSWORD!"
+    exit 1
+fi
+
+THIS_FULL_PATH=$(python3 -c "import os; print(os.path.realpath('$0'))")
+REPO_DIR=$(dirname $(dirname $THIS_FULL_PATH))
+
+if [ -f $REPO_DIR/terraform/tfstate/terraform.tfstate ]; then
+    mv $REPO_DIR/terraform/tfstate/terraform.tfstate $REPO_DIR/terraform/tfstate/terraform.tfstate.enc
+    $REPO_DIR/scripts/local_encrypt $REPO_DIR/terraform/tfstate/terraform.tfstate.enc
+fi
+
+find $REPO_DIR -name 'secrets.tfvars' | xargs -I {} bash -ce "\
+    mv {} {}.enc; \
+    $REPO_DIR/scripts/local_encrypt {}.enc
+    "
+find $REPO_DIR -name '*_secrets.tfvars' | xargs -I {} bash -ce "\
+    mv {} {}.enc; \
+    $REPO_DIR/scripts/local_encrypt {}.enc
+    "

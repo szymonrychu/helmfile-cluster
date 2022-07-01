@@ -1,0 +1,22 @@
+---
+# handlers file for openvpn
+
+- name: restart openvpn
+  ansible.builtin.service:
+    name: "{{ openvpn_service }}"
+    state: restarted
+    enabled: yes
+  when:
+    - not ansible_check_mode | bool
+
+- name: restart nginx
+  ansible.builtin.service:
+    name: "nginx"
+    state: restarted
+    enabled: yes
+
+- name: restart iptablesvpn
+  ansible.builtin.service:
+    name: "iptablesvpn"
+    state: restarted
+    enabled: yes
